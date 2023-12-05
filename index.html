@@ -1,27 +1,46 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en-us">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Johnny Castaway</title>
     <style type="text/css">
-      .dosbox-container {min-height:320;  min-width:200; text-align: center; }
-      .dosbox-container > .dosbox-overlay { background: url(https://raw.githubusercontent.com/huntergdavis/johnnycastaway/master/johnnytitle.gif);
- }
-      .dosbox-container >   .dosbox-canvas {min-width:320; min-height:200;}
-      .dosbox-start {height:0;}
-
-      body {
-        background-color: #0000aa;
-        zoom: 1;
-        overflow:hidden;
+      .dosbox-container {
+        min-height: 320;
+        min-width: 200;
+        text-align: center;
+      }
+      .dosbox-container > .dosbox-overlay {
+        background: url(https://raw.githubusercontent.com/huntergdavis/johnnycastaway/master/johnnytitle.gif);
+      }
+      .dosbox-container > .dosbox-canvas {
+        min-width: 320;
+        min-height: 200;
+      }
+      .dosbox-start {
+        height: 0;
       }
 
+      body {
+        background-color: #000000;
+        zoom: 1;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      #dosbox {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
     </style>
   </head>
   <body>
     <div id="dosbox"></div>
-    <script type="text/javascript" src="https://js-dos.com/cdn/js-dos-api.js"></script>
+    <script
+      type="text/javascript"
+      src="https://js-dos.com/cdn/js-dos-api.js"
+    ></script>
     <script type="text/javascript">
       var dosbox = new Dosbox({
         id: "dosbox",
@@ -30,31 +49,82 @@
         },
         onrun: function (dosbox, app) {
           console.log("App '" + app + "' is runned");
-        }
+        },
       });
 
       function getUrlVars() {
         var vars = {};
-        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        var parts = window.location.href.replace(
+          /[?&]+([^=&]+)=([^&]*)/gi,
+          function (m, key, value) {
             vars[key] = value;
-        });
+          }
+        );
         return vars;
       }
 
-      function getZoomFromUrl(){
+      function getZoomFromUrl() {
         var parameter = "zoom";
-          var urlparameter = 1; // default zoom to 1, effectively unset
-          if(window.location.href.indexOf(parameter) > -1){
-              urlparameter = getUrlVars()[parameter];
-              }
-          return urlparameter;
+        var urlparameter = 1; // default zoom to 1, effectively unset
+        if (window.location.href.indexOf(parameter) > -1) {
+          urlparameter = getUrlVars()[parameter];
+        }
+        return urlparameter;
+      }
+      function getUrlParameter(name) {
+        var results = new RegExp("[\?&]" + name + "=([^&#]*)").exec(
+          window.location.href
+        );
+        if (results == null) {
+          return null;
+        }
+        return decodeURI(results[1]) || 0;
       }
 
-      var zoomLevel = getUrlVars()["zoom"];
+      function calculateZoom() {
+        var screenWidth =
+          window.innerWidth ||
+          document.documentElement.clientWidth ||
+          document.body.clientWidth;
+        var screenHeight =
+          window.innerHeight ||
+          document.documentElement.clientHeight ||
+          document.body.clientHeight;
 
-      document.body.style.zoom = zoomLevel;
+        // Calculate zoom level based on screen width and height
+        var zoomWidth = screenWidth / 320; // 320 is the original width of the DOSBox
+        var zoomHeight = screenHeight / 200; // 200 is the original height of the DOSBox
 
-      document.getElementsByClassName('dosbox-start')[0].click();
+        return Math.min(zoomWidth, zoomHeight);
+      }
+      function stretchToFitScreen() {
+        var screenHeight =
+          window.innerHeight ||
+          document.documentElement.clientHeight ||
+          document.body.clientHeight;
+
+        // Calculate zoom level based on screen height
+        var zoomHeight = screenHeight / 200 / 2.4; // 200 is the original height of the DOSBox
+
+        return zoomHeight;
+      }
+      var zoomMode = getUrlParameter("zoomMode"); // Get 'zoomMode' parameter from URL
+      var zoomMode = "stretch"; // Force zoom mode to "stretch"
+      //zoomMode = "fit"; // Force zoom mode to "stretch
+      if (zoomMode == "stretch") {
+        var zoomLevel = stretchToFitScreen();
+        document.body.style.zoom = zoomLevel;
+      } else if (zoomMode == "fit") {
+        // Calculate zoom level based on screen width and height
+        var zoomLevel = calculateZoom();
+        document.body.style.zoom = zoomLevel;
+      } else {
+        // Default zoom level
+        document.body.style.zoom = getZoomFromUrl();
+        document.body.style.zoom = 2;
+      }
+
+      document.getElementsByClassName("dosbox-start")[0].click();
     </script>
   </body>
 </html>
